@@ -2,22 +2,14 @@
 # -*- coding: utf-8 -*-
 """Convert UCLA Library CSV files for Ursus, our Blacklight installation."""
 
-from datetime import datetime
+from importlib import import_module
 from numbers import Number
-import os
-import re
-import typing
 
 import click
 from retry.api import retry_call
 import rich.progress
 from pysolr import Solr  # type: ignore
 from elasticsearch import Elasticsearch
-
-
-# Custom Types
-
-Record = typing.Dict[str, typing.Any]
 
 
 @click.group()
@@ -27,12 +19,6 @@ def centralsearch():
 
 @click.option("--max-records", default=float("inf"))
 @click.option("--source-url", required=True)
-@click.option(
-    "--source-query",
-    default="*:*",
-    help="Solr query to select records for copying."
-    + "The default value will copy all records.",
-)
 @click.option(
     "--elastic-url",
     required=True,
@@ -45,16 +31,22 @@ def centralsearch():
     help="API key for Elasticsearch. Untested, I've been using username and password in --elastic-url.",
 )
 @click.option("--destination-index-name", required=True)
+@click.option("--profile", required=False)
 @centralsearch.command("copy")
 def copy(
     source_url: str,
-    source_query: str,
     destination_index_name: str,
     max_records: Number,
     elastic_url: str,
     elastic_api_key: str | None,
+    profile: str | None,
 ):
     """Copy records from a Solr index to the central Elasticsearch index."""
+
+    profile_module = import_module(profile) if profile else None
+    get_id = getattr(profile_module, "get_id", lambda x: x["id"])
+    map_record = getattr(profile_module, "map_record", lambda x: x)
+    source_query = getattr(profile_module, "SOURCE_QUERY", "*:*")   
 
     # TODO: click has a built-in progress bar; and I think pysolr can handle
     # chunking if we just iterate over a Results object
@@ -98,40 +90,6 @@ def copy(
                 progress.update(task, total=n_hits, completed=start + index)
 
             start += chunk_size
-
-
-# TODO: Move to a per-source config file
-def get_id(record: Record) -> Record:
-    return record["ark_ssi"]
-
-
-HYRAX_SUFFIX = re.compile(r"_(te|s|b|dt)s?i?m?$")
-
-
-def map_record(record: Record) -> Record:
-    """Strip hyrax suffixes from field names."""
-
-    if record.get("date_dtsim"):
-        record["date_dtsim"] = [
-            d for d in record["date_dtsim"] if isinstance(d, datetime)
-        ]
-
-    # remove unwanted fields
-    for k in [
-        "accessControl",
-        "id",
-        "score",
-        "system_create",
-        "system_modified",
-        "timestamp",
-    ]:
-        record.pop(k) if k in record else None
-
-    # add fields for url and source
-    record["url"] = f"https://digital.library.ucla.edu/catalog/{record['ark_ssi']}"
-    record["source"] = "Californica"
-
-    return {HYRAX_SUFFIX.sub("", key): value for (key, value) in record.items()}
 
 
 if __name__ == "__main__":
