@@ -14,9 +14,8 @@ Get help for a command:
 Copy between the included test docker images:
 ```
 python centralsearch.py copy \
-    --max-records 1000 \
-    --source-url http://localhost:8983/solr/ursus \
-    --source-query "*:*" \
-    --elastic-url "http://localhost:9200" \
-    --destination-index-name systems-index-digitallibrary-ursus
+    --source-url http://localhost:8983/solr/sinai \
+    --elastic-url http://localhost:9200/ \
+    --destination-index-name test-sinai \
+    --profile config.samvera
 ```
