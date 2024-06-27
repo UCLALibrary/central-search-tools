@@ -3,9 +3,3 @@ pysolr ~= 3.9
 rich ~= 13.4
 retry ~= 0.9
 elasticsearch ~= 7.17
-
-black ~= 23.3
-types-retry ~= 0.9.9
-flake8 ~= 7.0
-mypy ~= 1.10
-ipdb ~= 0.13
