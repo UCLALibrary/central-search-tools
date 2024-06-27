@@ -3,8 +3,6 @@ version: "3.6"
 services:
   python:
     build: .
-    env_file:
-      - ./docker.env
     network_mode: host
 
   elastic:
