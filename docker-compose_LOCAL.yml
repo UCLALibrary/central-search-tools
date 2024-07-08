@@ -3,6 +3,8 @@ version: "3.6"
 services:
   python:
     build: .
+    volumes:
+      - .:/app
     network_mode: host
 
   elastic:
