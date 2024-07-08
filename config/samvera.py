@@ -2,7 +2,6 @@ from datetime import datetime
 import re
 
 SOURCE_QUERY = "ark_ssi:*"
-HYRAX_SUFFIX = re.compile(r"_(te|s|b|dt)s?i?m?$")
 
 
 def get_id(record: dict) -> str:
@@ -11,6 +10,7 @@ def get_id(record: dict) -> str:
 
 def map_record(record: dict) -> dict:
     """Strip hyrax suffixes from field names."""
+    HYRAX_SUFFIX = re.compile(r"_(te|s|b|dt)s?i?m?$")
 
     if record.get("date_dtsim"):
         record["date_dtsim"] = [
