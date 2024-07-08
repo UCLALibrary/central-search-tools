@@ -59,6 +59,13 @@ python centralsearch.py copy \
 
 Ignore security warnings in the local environment.
 
+#### List fields in Solr index
+Lists all fields in all records in a Solr index, along with number of occurrences of each field.
+Generally takes 5-15 minutes, depending on number of records.
+```
+python centralsearch.py get_solr_fields --source-url URL
+```
+
 #### Review / explore data
 
 Elasticsearch and Kibana provide the same data, but Kibana is friendlier to use via its console.
