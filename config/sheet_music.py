@@ -14,6 +14,7 @@ def map_record(record: dict) -> dict:
         "publishers",
         "subjects",
         "names",
+        "url_keyword",
     ]
     output_record = {}
     for fld in fields_to_keep:
@@ -23,7 +24,7 @@ def map_record(record: dict) -> dict:
     # URL for MODS record isn't in original metadata, but we can construct it
     output_record["mods_url"] = (
         "https://static.library.ucla.edu/sheetmusic/mods/"
-        + f"{record['collectionKey']}/{record['id']}.xml"
+        + f"{record['collectionKey'][0]}/{record['id']}"
     )
     # add new field for source
     output_record["source"] = "Sheet Music"
