@@ -8,12 +8,13 @@ def get_id(record: dict) -> str:
 def map_record(record: dict) -> dict:
 
     # only take a selection of fields for now
+    # use the "keyword" version of fields since these are deduped
     fields_to_keep = [
         "id",
-        "titles",
-        "publishers",
-        "subjects",
-        "names",
+        "title_keyword",
+        "publisher_keyword",
+        "subjectTopic_keyword",
+        "nameNamePart_keyword",
         "url_keyword",
     ]
     output_record = {}
