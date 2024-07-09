@@ -8,28 +8,20 @@ def get_id(record: dict) -> str:
 def map_record(record: dict) -> dict:
 
     # only take a selection of fields for now
-    # use the "keyword" version of fields since these are deduped
-    fields_to_keep = [
-        "id",
-        "title_keyword",
-        "publisher_keyword",
-        "subjectTopic_keyword",
-        "nameNamePart_keyword",
-        "url_keyword",
-    ]
-    keep_record = {}
-    for fld in fields_to_keep:
-        if fld in record:
-            keep_record[fld] = record[fld]
+    # use the "keyword" version of fields since these are deduped, but rename them
+    fields_to_keep = {
+        "id": "id",
+        "title_keyword": "titles",
+        "publisher_keyword": "publishers",
+        "subjectTopic_keyword": "subjects",
+        "nameNamePart_keyword": "names",
+        "url_keyword": "url",
+    }
 
-    # rename fields for consistency
     output_record = {}
-    output_record["id"] = keep_record["id"]
-    output_record["title"] = keep_record["title_keyword"]
-    output_record["publisher"] = keep_record["publisher_keyword"]
-    output_record["subject"] = keep_record["subjectTopic_keyword"]
-    output_record["name"] = keep_record["nameNamePart_keyword"]
-    output_record["url"] = keep_record["url_keyword"]
+    for fld in fields_to_keep.keys():
+        if fld in record:
+            output_record[fields_to_keep[fld]] = record[fld]
 
     # URL for MODS record isn't in original metadata, but we can construct it
     output_record["mods_url"] = (

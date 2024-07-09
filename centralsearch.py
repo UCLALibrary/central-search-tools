@@ -87,7 +87,7 @@ def copy(
                         max_delay=60 * 5,  # 5 min
                     )
                 except Exception as e:
-                    print(e)
+                    print(repr(e))
                 progress.update(task, total=n_hits, completed=start + index)
 
             start += chunk_size
