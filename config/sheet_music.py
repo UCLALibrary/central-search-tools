@@ -17,10 +17,19 @@ def map_record(record: dict) -> dict:
         "nameNamePart_keyword",
         "url_keyword",
     ]
-    output_record = {}
+    keep_record = {}
     for fld in fields_to_keep:
         if fld in record:
-            output_record[fld] = record[fld]
+            keep_record[fld] = record[fld]
+
+    # rename fields for consistency
+    output_record = {}
+    output_record["id"] = keep_record["id"]
+    output_record["title"] = keep_record["title_keyword"]
+    output_record["publisher"] = keep_record["publisher_keyword"]
+    output_record["subject"] = keep_record["subjectTopic_keyword"]
+    output_record["name"] = keep_record["nameNamePart_keyword"]
+    output_record["url"] = keep_record["url_keyword"]
 
     # URL for MODS record isn't in original metadata, but we can construct it
     output_record["mods_url"] = (
