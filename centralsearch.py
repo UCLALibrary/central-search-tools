@@ -8,8 +8,9 @@ from numbers import Number
 import click
 from retry.api import retry_call
 import rich.progress
-from pysolr import Solr  # type: ignore
+from pysolr import Solr, Results  # type: ignore
 from elasticsearch import Elasticsearch
+from elasticsearch.helpers import streaming_bulk
 from pprint import pprint
 
 
@@ -49,6 +50,14 @@ def copy(
     map_record = getattr(profile_module, "map_record", lambda x: x)
     source_query = getattr(profile_module, "SOURCE_QUERY", "*:*")
 
+    def _generate_docs(chunk: Results):
+        """Generator for use by Elasticsearch's streaming_bulk."""
+        for doc in chunk.docs:
+            es_doc = map_record(doc)
+            # Explicitly set _id as that can't be done per record via streaming_bulk.
+            es_doc["_id"] = get_id(doc)
+            yield es_doc
+
     # TODO: click has a built-in progress bar; and I think pysolr can handle
     # chunking if we just iterate over a Results object
     with rich.progress.Progress() as progress:
@@ -72,23 +81,21 @@ def copy(
             )
             n_hits = chunk.hits
 
-            # TODO: combine these into a single bulk request
-            for index, doc in enumerate(chunk.docs):
-                try:
-                    retry_call(
-                        es_client.index,
-                        fkwargs={
-                            "index": destination_index_name,
-                            "document": map_record(doc),
-                            "id": get_id(doc),
-                        },
-                        delay=0.5,
-                        backoff=2,
-                        max_delay=60 * 5,  # 5 min
-                    )
-                except Exception as e:
-                    print(repr(e))
-                progress.update(task, total=n_hits, completed=start + index)
+            # Load documents into Elasticsearch in bulk, via a generator:
+            # https://elasticsearch-py.readthedocs.io/en/7.x/helpers.html
+            for ok, action in streaming_bulk(
+                client=es_client,
+                index=destination_index_name,
+                actions=_generate_docs(chunk),
+                max_retries=5,
+                initial_backoff=2,
+                max_backoff=60,
+                request_timeout=30,
+            ):
+                # For accurate progress bar, use the lesser of total hits vs. max records
+                progress.update(
+                    task, total=min(n_hits, max_records), completed=start + ok
+                )
 
             start += chunk_size
 
