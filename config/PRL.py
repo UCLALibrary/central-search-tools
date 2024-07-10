@@ -23,7 +23,7 @@ def map_record(record: dict) -> dict:
 
     output_record = {}
     for fld in fields_to_keep.keys():
-        if fld in record:
+        if fld in record and record[fld] != [" "]:
             output_record[fields_to_keep[fld]] = record[fld]
 
     # add new field for source
