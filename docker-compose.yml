@@ -5,3 +5,6 @@ services:
     build: .
     volumes:
       - .:/app
+    extra_hosts:
+      # For access to remote resources via ssh tunnel on host
+      - "host.docker.internal:host-gateway"
