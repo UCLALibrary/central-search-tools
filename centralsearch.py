@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Convert UCLA Library CSV files for Ursus, our Blacklight installation."""
-
 from importlib import import_module
 from numbers import Number
 from typing import Generator, Any
@@ -11,7 +7,8 @@ import rich.progress
 from pysolr import Solr  # type: ignore
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
-from datasources.SolrSearch import SolrSearch
+from datasources.dataverse_search import DataverseSearch
+from datasources.solr_search import SolrSearch
 from pprint import pprint
 
 
@@ -20,8 +17,12 @@ def centralsearch():
     pass
 
 
-@click.option("--max-records", default=999_999_999)
 @click.option("--source-url", required=True, help="Solr URL")
+@click.option(
+    "--source-type",
+    default="solr",
+    type=click.Choice(["solr", "dataverse"], case_sensitive=False),
+)
 @click.option(
     "--elastic-url",
     required=True,
@@ -35,16 +36,18 @@ def centralsearch():
 )
 @click.option("--destination-index-name", required=True)
 @click.option("--profile", required=False)
+@click.option("--max-records", default=999_999_999)
 @centralsearch.command("copy")
 def copy(
     source_url: str,
+    source_type: str,
     destination_index_name: str,
     max_records: Number,
     elastic_url: str,
     elastic_api_key: str | None,
     profile: str | None,
 ):
-    """Copy records from a Solr index to the central Elasticsearch index."""
+    """Copy records from a source index to the central Elasticsearch index."""
 
     profile_module = import_module(profile) if profile else None
     get_id = getattr(profile_module, "get_id", lambda x: x["id"])
@@ -59,21 +62,27 @@ def copy(
             es_doc["_id"] = get_id(doc)
             yield es_doc
 
+    if source_type == "solr":
+        searcher = SolrSearch(source_url)
+    elif source_type == "dataverse":
+        searcher = DataverseSearch(source_url)
+    else:
+        raise (NotImplementedError(f"Unsupported {source_type=}"))
+
+    rows_per_batch = 1000
+    results = searcher.search(
+        source_query, rows_per_batch=rows_per_batch, max_records=max_records
+    )
+
     es_client = Elasticsearch(
         hosts=[elastic_url],
         verify_certs=True,
         api_key=elastic_api_key,
     )
 
-    solr_client = SolrSearch(source_url)
-    rows_per_batch = 1000
-    results = solr_client.search(
-        source_query, rows_per_batch=rows_per_batch, max_records=max_records
-    )
-    completed = 0
-
     # Load documents into Elasticsearch in bulk, via a generator:
     # https://elasticsearch-py.readthedocs.io/en/7.x/helpers.html
+    completed = 0
     for ok, action in streaming_bulk(
         client=es_client,
         index=destination_index_name,
@@ -85,7 +94,7 @@ def copy(
         request_timeout=30,
     ):
         completed += ok
-        total = min(solr_client.hits, max_records)
+        total = min(searcher.hits, max_records)
         if (completed % rows_per_batch == 0) or (completed == total):
             print(f"{completed} / {total}")
 
