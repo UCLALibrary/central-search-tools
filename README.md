@@ -51,10 +51,21 @@ then run commands within that environment.
 #### Copy data from the local Sinai Solr index to local Elasticsearch
 ```
 python centralsearch.py copy \
-    --source-url http://localhost:8983/solr/sinai \
-    --elastic-url http://localhost:9200/ \
-    --destination-index-name test-sinai \
-    --profile config.samvera
+--source-url http://localhost:8983/solr/sinai \
+--elastic-url http://localhost:9200/ \
+--destination-index-name test-sinai \
+--profile config.samvera
+```
+
+#### Copy 150 records from remote Datasearch index to local Elasticsearch
+```
+python centralsearch.py copy \
+--source-url https://dataverse.ucla.edu/api/search \
+--source-type dataverse \
+--elastic-url http://localhost:9200/ \
+--destination-index-name test-dataverse \
+--profile config.dataverse \
+--max-records 150
 ```
 
 Ignore security warnings in the local environment.
