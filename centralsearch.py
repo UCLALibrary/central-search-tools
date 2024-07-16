@@ -7,8 +7,7 @@ import rich.progress
 from pysolr import Solr  # type: ignore
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
-from datasources.dataverse_search import DataverseSearch
-from datasources.solr_search import SolrSearch
+from datasources import DataverseSearch, SolrSearch
 from pprint import pprint
 
 
