@@ -30,8 +30,6 @@ class DataverseSearch(BaseSearch):
     def search(
         self, query: str, rows_per_batch: int = 1000, max_records: int = 999_999_999
     ) -> Generator[dict, Any, Any]:
-        # Add a hard limit to published records only.
-        query += "&publicationStatus:Published"
         # Minimal valid response looks like this:
         # {
         #     "status": "OK",

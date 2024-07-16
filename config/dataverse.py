@@ -1,4 +1,6 @@
-SOURCE_QUERY = "*"
+# Search for everything, with a hard limit to published records only.
+# https://guides.dataverse.org/en/latest/api/search.html
+SOURCE_QUERY = "*&publicationStatus:Published"
 
 
 def get_id(record: dict) -> str:
