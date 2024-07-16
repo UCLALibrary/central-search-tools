@@ -20,6 +20,7 @@ def centralsearch():
 @click.option(
     "--source-type",
     default="solr",
+    help="Type of data source; defaults to solr",
     type=click.Choice(["solr", "dataverse"], case_sensitive=False),
 )
 @click.option(
