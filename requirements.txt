@@ -3,3 +3,4 @@ pysolr ~= 3.9
 rich ~= 13.4
 retry ~= 0.9
 elasticsearch ~= 7.17
+requests ~= 2.32.3

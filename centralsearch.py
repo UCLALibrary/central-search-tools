@@ -1,16 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Convert UCLA Library CSV files for Ursus, our Blacklight installation."""
-
 from importlib import import_module
 from numbers import Number
+from typing import Generator, Any
 
 import click
-from retry.api import retry_call
 import rich.progress
-from pysolr import Solr, Results  # type: ignore
+from pysolr import Solr  # type: ignore
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
+from datasources import DataverseSearch, SolrSearch
 from pprint import pprint
 
 
@@ -19,8 +16,13 @@ def centralsearch():
     pass
 
 
-@click.option("--max-records", default=float("inf"))
 @click.option("--source-url", required=True, help="Solr URL")
+@click.option(
+    "--source-type",
+    default="solr",
+    help="Type of data source; defaults to solr",
+    type=click.Choice(["solr", "dataverse"], case_sensitive=False),
+)
 @click.option(
     "--elastic-url",
     required=True,
@@ -34,70 +36,67 @@ def centralsearch():
 )
 @click.option("--destination-index-name", required=True)
 @click.option("--profile", required=False)
+@click.option("--max-records", default=999_999_999)
 @centralsearch.command("copy")
 def copy(
     source_url: str,
+    source_type: str,
     destination_index_name: str,
     max_records: Number,
     elastic_url: str,
     elastic_api_key: str | None,
     profile: str | None,
 ):
-    """Copy records from a Solr index to the central Elasticsearch index."""
+    """Copy records from a source index to the central Elasticsearch index."""
 
     profile_module = import_module(profile) if profile else None
     get_id = getattr(profile_module, "get_id", lambda x: x["id"])
     map_record = getattr(profile_module, "map_record", lambda x: x)
     source_query = getattr(profile_module, "SOURCE_QUERY", "*:*")
 
-    def _generate_docs(chunk: Results):
+    def _generate_docs(results: Generator) -> Generator[dict, Any, Any]:
         """Generator for use by Elasticsearch's streaming_bulk."""
-        for doc in chunk.docs:
+        for doc in results:
             es_doc = map_record(doc)
             # Explicitly set _id as that can't be done per record via streaming_bulk.
             es_doc["_id"] = get_id(doc)
             yield es_doc
 
-    # TODO: click has a built-in progress bar; and I think pysolr can handle
-    # chunking if we just iterate over a Results object
-    with rich.progress.Progress() as progress:
-        task = progress.add_task("Copying...", total=None)
-        es_client = Elasticsearch(
-            hosts=[elastic_url],
-            verify_certs=True,
-            api_key=elastic_api_key,
-        )
+    if source_type == "solr":
+        searcher = SolrSearch(source_url)
+    elif source_type == "dataverse":
+        searcher = DataverseSearch(source_url)
+    else:
+        raise (NotImplementedError(f"Unsupported {source_type=}"))
 
-        source_solr = Solr(source_url, timeout=10, always_commit=True)
+    rows_per_batch = 1000
+    results = searcher.search(
+        source_query, rows_per_batch=rows_per_batch, max_records=max_records
+    )
 
-        n_hits = float("inf")
-        start = 0
-        chunk_size = 250
-        while start < n_hits and start < max_records:
-            chunk = retry_call(
-                source_solr.search,
-                fargs=[source_query],
-                fkwargs={"defType": "lucene", "start": start, "rows": chunk_size},
-            )
-            n_hits = chunk.hits
+    es_client = Elasticsearch(
+        hosts=[elastic_url],
+        verify_certs=True,
+        api_key=elastic_api_key,
+    )
 
-            # Load documents into Elasticsearch in bulk, via a generator:
-            # https://elasticsearch-py.readthedocs.io/en/7.x/helpers.html
-            for ok, action in streaming_bulk(
-                client=es_client,
-                index=destination_index_name,
-                actions=_generate_docs(chunk),
-                max_retries=5,
-                initial_backoff=2,
-                max_backoff=60,
-                request_timeout=30,
-            ):
-                # For accurate progress bar, use the lesser of total hits vs. max records
-                progress.update(
-                    task, total=min(n_hits, max_records), completed=start + ok
-                )
-
-            start += chunk_size
+    # Load documents into Elasticsearch in bulk, via a generator:
+    # https://elasticsearch-py.readthedocs.io/en/7.x/helpers.html
+    completed = 0
+    for ok, action in streaming_bulk(
+        client=es_client,
+        index=destination_index_name,
+        actions=_generate_docs(results),
+        chunk_size=rows_per_batch,
+        max_retries=5,
+        initial_backoff=2,
+        max_backoff=60,
+        request_timeout=30,
+    ):
+        completed += ok
+        total = min(searcher.hits, max_records)
+        if (completed % rows_per_batch == 0) or (completed == total):
+            print(f"{completed} / {total}")
 
 
 @click.option("--source-url", required=True, help="Solr URL")
