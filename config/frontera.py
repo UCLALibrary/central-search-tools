@@ -9,7 +9,7 @@ def map_record(record: dict) -> dict:
     fields_to_keep = {
         "id": "id",
         "ss_title": "title",
-        "content": "description",
+        "content": "content",
         "ss_type": "type",
         "ss_field_recording_artist_name_string": "recording_artist_name",
         "ss_field_composer_string": "composer",
