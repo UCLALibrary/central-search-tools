@@ -103,3 +103,41 @@ class SolrSearch(BaseSearch):
 
             for doc in results.docs:
                 yield doc
+
+
+class FronteraSearch(BaseSearch):
+    def __init__(self, source_url: str):
+        self.source_url = source_url
+        self._hits: int = 0
+
+    @property
+    def hits(self) -> int:
+        # This will be the initial 0 until search results
+        # start being evaluated by the caller.
+        return self._hits
+
+    def search(
+        self, query: str, rows_per_batch: int = 1000, max_records: int = 999_999_999
+    ) -> Generator[dict, Any, Any]:
+
+        rows_per_batch = min(rows_per_batch, max_records)
+        # Initialize the loop
+        start = 0
+        self._hits = max_records
+        while start < self._hits and start < max_records:
+            # Make sure final batch does not exceed max wanted.
+            if start + rows_per_batch > max_records:
+                rows_per_batch = max_records - start
+
+            query_url = (
+                f"{self.source_url}?"
+                f"query={query}&start={start}&rows={rows_per_batch}&wt=json"
+            )
+            results = retry_call(requests.get, fargs=[query_url])
+            data = results.json().get("response")
+            self._hits = data.get("numFound")
+            start += rows_per_batch
+
+            docs = data.get("docs")
+            for doc in docs:
+                yield doc
