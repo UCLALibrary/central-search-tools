@@ -4,7 +4,7 @@ Command-line tools for working with Solr and Elasticsearch indexes.
 
 Build (first time) / rebuild (as needed):
 
-`docker-compose build`
+`docker compose build`
 
 ## Local experimentation
 
@@ -16,7 +16,7 @@ The full local environment can be used for experimenting, with local copies of
 
 To run the full system locally:
 
-`docker-compose -f docker-compose_LOCAL.yml up -d`
+`docker compose -f docker-compose_LOCAL.yml up -d`
 
 This provides 2 Solr indexes:
 * http://localhost:8983/solr/#/sinai (742 documents)
@@ -38,7 +38,7 @@ then run commands within that environment.
 
 #### Open python console using the full local environment
 
-`docker-compose -f docker-compose_LOCAL.yml run python bash`
+`docker compose -f docker-compose_LOCAL.yml run python bash`
 
 #### List commands
 
@@ -68,6 +68,17 @@ python centralsearch.py copy \
 --max-records 150
 ```
 
+#### Copy 150 records from remote Frontera index to local Elasticsearch
+```
+python centralsearch.py copy \
+--source-url https://USER:PASSWORD@frontera.library.ucla.edu/solr-proxy \
+--source-type frontera \
+--elastic-url http://localhost:9200/ \
+--destination-index-name test-frontera \
+--profile config.frontera \
+--max-records 150
+```
+
 Ignore security warnings in the local environment.
 
 #### List fields in Solr index
@@ -91,7 +102,7 @@ Elasticsearch and Kibana provide the same data, but Kibana is friendlier to use 
 
 #### Shut down the local environment
 
-`docker-compose -f docker-compose_LOCAL.yml down`
+`docker compose -f docker-compose_LOCAL.yml down`
 
 ## Production use
 
@@ -99,4 +110,4 @@ Coming soon (TM).
 
 For production use, only the python environment is needed, since it will run against real Solr and Elasticsearch instances.
 
-`docker-compose run python bash`
+`docker compose run python bash`

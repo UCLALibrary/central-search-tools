@@ -7,7 +7,7 @@ import rich.progress
 from pysolr import Solr  # type: ignore
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
-from datasources import DataverseSearch, SolrSearch
+from datasources import DataverseSearch, SolrSearch, FronteraSearch
 from pprint import pprint
 
 
@@ -21,7 +21,7 @@ def centralsearch():
     "--source-type",
     default="solr",
     help="Type of data source; defaults to solr",
-    type=click.Choice(["solr", "dataverse"], case_sensitive=False),
+    type=click.Choice(["solr", "dataverse", "frontera"], case_sensitive=False),
 )
 @click.option(
     "--elastic-url",
@@ -66,6 +66,8 @@ def copy(
         searcher = SolrSearch(source_url)
     elif source_type == "dataverse":
         searcher = DataverseSearch(source_url)
+    elif source_type == "frontera":
+        searcher = FronteraSearch(source_url)
     else:
         raise (NotImplementedError(f"Unsupported {source_type=}"))
 
