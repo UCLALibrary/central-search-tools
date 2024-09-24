@@ -12,7 +12,11 @@ class BaseSearch(ABC):
 
     @abstractmethod
     def search(
-        self, query: str, rows_per_batch: int = 1000, max_records: int = 999_999_999
+        self,
+        query: str,
+        rows_per_batch: int = 1000,
+        max_records: int = 999_999_999,
+        **kwargs,
     ) -> Generator[dict, Any, Any]: ...
 
 
@@ -79,7 +83,11 @@ class SolrSearch(BaseSearch):
         return self._hits
 
     def search(
-        self, query: str, rows_per_batch: int = 1000, max_records: int = 999_999_999
+        self,
+        query: str,
+        rows_per_batch: int = 1000,
+        max_records: int = 999_999_999,
+        def_type: str = "lucene",
     ) -> Generator[dict, Any, Any]:
         solr_client = Solr(self.source_url, timeout=10)
 
@@ -96,7 +104,7 @@ class SolrSearch(BaseSearch):
             results = retry_call(
                 solr_client.search,
                 fargs=[query],
-                fkwargs={"defType": "lucene", "start": start, "rows": rows_per_batch},
+                fkwargs={"defType": def_type, "start": start, "rows": rows_per_batch},
             )
             self._hits = results.hits
             start += rows_per_batch
