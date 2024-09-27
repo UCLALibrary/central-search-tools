@@ -22,10 +22,18 @@ def map_record(record: dict) -> dict:
             output_record[fields_to_keep[fld]] = record[fld]
 
     # Every record has title_display (now in titles);
-    # for now, append subtitle_display if it exists.
-    # TODO: Should titles be a list instead? (for all sources?)
+    # add subtitle_display if it exists.
+    # Either way, make titles a list.
+    if "titles" in output_record:
+        output_record["titles"] = [output_record["titles"]]
     if "subtitle_display" in record:
-        output_record["titles"] += f" {record['subtitle_display']}"
+        output_record["titles"].append(record["subtitle_display"])
+
+    # Make names a list, and add interviewee_display if it exists.
+    if "names" in output_record:
+        output_record["names"] = [output_record["names"]]
+        if "interviewee_display" in record:
+            output_record["names"].append(record["interviewee_display"])
 
     # Clean up subjects, which often has duplicates in solr data.
     if "subjects" in output_record and isinstance(output_record["subjects"], list):
