@@ -32,7 +32,11 @@ class DataverseSearch(BaseSearch):
         return self._hits
 
     def search(
-        self, query: str, rows_per_batch: int = 1000, max_records: int = 999_999_999
+        self,
+        query: str,
+        rows_per_batch: int = 1000,
+        max_records: int = 999_999_999,
+        **kwargs,
     ) -> Generator[dict, Any, Any]:
         # Minimal valid response looks like this:
         # {

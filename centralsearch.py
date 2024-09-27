@@ -71,7 +71,7 @@ def copy(
         for doc in results:
             es_doc = map_record(doc)
             # Explicitly set _id as that can't be done per record via streaming_bulk.
-            es_doc["_id"] = get_id(doc)
+            es_doc["_id"] = get_id(es_doc)
             yield es_doc
 
     if source_type == "solr":
