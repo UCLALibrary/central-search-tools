@@ -3,7 +3,9 @@ services:
     build: .
     volumes:
       - .:/app
-    network_mode: host
+    extra_hosts:
+      # For access to remote resources via ssh tunnel on host
+      - "host.docker.internal:host-gateway"
 
   elastic:
     image: elasticsearch:7.17.19
