@@ -16,7 +16,12 @@ def centralsearch():
     pass
 
 
-@click.option("--source-url", required=True, help="Solr URL")
+@click.option(
+    "--source-url",
+    required=True,
+    help="Solr URL. Can contain username and password "
+    + "(e.g. https://[username]:[password]@solr.url/",
+)
 @click.option(
     "--source-type",
     default="solr",
@@ -37,6 +42,12 @@ def centralsearch():
 @click.option("--destination-index-name", required=True)
 @click.option("--profile", required=False)
 @click.option("--max-records", default=999_999_999)
+@click.option(
+    "--def-type",
+    default="lucene",
+    help="Solr defType; defaults to lucene",
+    type=click.Choice(["lucene", "dismax", "edismax"], case_sensitive=False),
+)
 @centralsearch.command("copy")
 def copy(
     source_url: str,
@@ -46,6 +57,7 @@ def copy(
     elastic_url: str,
     elastic_api_key: str | None,
     profile: str | None,
+    def_type: str | None,
 ):
     """Copy records from a source index to the central Elasticsearch index."""
 
@@ -73,7 +85,10 @@ def copy(
 
     rows_per_batch = 1000
     results = searcher.search(
-        source_query, rows_per_batch=rows_per_batch, max_records=max_records
+        source_query,
+        rows_per_batch=rows_per_batch,
+        max_records=max_records,
+        def_type=def_type,
     )
 
     es_client = Elasticsearch(
@@ -102,8 +117,14 @@ def copy(
 
 
 @click.option("--source-url", required=True, help="Solr URL")
+@click.option(
+    "--def-type",
+    default="lucene",
+    help="Solr defType; defaults to lucene",
+    type=click.Choice(["lucene", "dismax", "edismax"], case_sensitive=False),
+)
 @centralsearch.command("get_solr_fields")
-def get_solr_fields(source_url: str) -> None:
+def get_solr_fields(source_url: str, def_type: str) -> None:
     """List all fields in all records of a Solr index,
     along with the number of times they occur."""
     with rich.progress.Progress() as progress:
@@ -117,7 +138,7 @@ def get_solr_fields(source_url: str) -> None:
         all_keys = {}
         while start < n_hits and start < max_records:
             chunk = source_solr.search(
-                source_query, defType="lucene", start=start, rows=chunk_size
+                source_query, defType=def_type, start=start, rows=chunk_size
             )
             n_hits = chunk.hits
             for doc in chunk.docs:

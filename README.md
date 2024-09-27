@@ -51,8 +51,8 @@ then run commands within that environment.
 #### Copy data from the local Sinai Solr index to local Elasticsearch
 ```
 python centralsearch.py copy \
---source-url http://localhost:8983/solr/sinai \
---elastic-url http://localhost:9200/ \
+--source-url http://solr:8983/solr/sinai \
+--elastic-url http://elastic:9200/ \
 --destination-index-name test-sinai \
 --profile config.samvera
 ```
@@ -62,7 +62,7 @@ python centralsearch.py copy \
 python centralsearch.py copy \
 --source-url https://dataverse.ucla.edu/api/search \
 --source-type dataverse \
---elastic-url http://localhost:9200/ \
+--elastic-url http://elastic:9200/ \
 --destination-index-name test-dataverse \
 --profile config.dataverse \
 --max-records 150
@@ -73,9 +73,21 @@ python centralsearch.py copy \
 python centralsearch.py copy \
 --source-url https://USER:PASSWORD@frontera.library.ucla.edu/solr-proxy \
 --source-type frontera \
---elastic-url http://localhost:9200/ \
+--elastic-url http://elastic:9200/ \
 --destination-index-name test-frontera \
 --profile config.frontera \
+--max-records 150
+```
+
+#### Copy 150 records from remote Oral History index to local Elasticsearch
+ ```
+ # Requires update to hosts file in container and on local machine
+python centralsearch.py copy \
+--source-url https://USER:PASSWORD@oralhistory-solr.library.ucla.edu:8982/solr/blacklight-core/ \
+--source-type solr \
+--elastic-url http://elastic:9200/ \
+--destination-index-name test-oralhistory \
+--profile config.oralhistory \
 --max-records 150
 ```
 
