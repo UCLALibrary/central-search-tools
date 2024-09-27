@@ -34,15 +34,18 @@ For an alternative, with local Elasticsearch and Kibana but no local Solr:
 
 ### Command-line tools
 
-The command-line tool for working with data is `centralsearch.py`.  Currently, it has only
-one function, copying data from Solr to Elasticsearch; more may be added later.
+The command-line tool for working with data is `centralsearch.py`.  Its main purpose is to copy data
+from Solr to Elasticsearch, but it has other commands - see below for more.
 
 The easiest way to work with it is to open a dockerized python environment,
 then run commands within that environment.
 
+Command-line examples below all assume you are running commands within Docker.
+If running in a virtual environment instead, URLs may need to be changed to use `localhost`.
+
 #### Open python console using the full local environment
 
-`docker compose -f docker-compose_LOCAL.yml run python bash`
+`docker-compose -f docker-compose_FULL.yml run python bash` or `docker-compose -f docker-compose_ES_ONLY.yml run python bash`
 
 #### List commands
 
@@ -118,7 +121,7 @@ Elasticsearch and Kibana provide the same data, but Kibana is friendlier to use 
 
 #### Shut down the local environment
 
-`docker compose -f docker-compose_LOCAL.yml down`
+`docker-compose -f docker-compose_FULL.yml down` or `docker-compose -f docker-compose_ES_ONLY.yml down`
 
 ## Production use
 
