@@ -16,7 +16,7 @@ The full local environment can be used for experimenting, with local copies of
 
 To run the full system locally:
 
-`docker compose -f docker-compose_LOCAL.yml up -d`
+`docker-compose -f docker-compose_FULL.yml up -d`
 
 This provides 2 Solr indexes:
 * http://localhost:8983/solr/#/sinai (742 documents)
@@ -27,6 +27,10 @@ Elasticsearch
 
 Kibana, for easier exploration of Elasticsearch indexes
 * http://localhost:5601/app/dev_tools#/console
+
+For an alternative, with local Elasticsearch and Kibana but no local Solr:
+
+`docker-compose -f docker-compose_ES_ONLY.yml up -d`
 
 ### Command-line tools
 
