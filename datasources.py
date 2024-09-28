@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Generator
 from pysolr import Solr
 from retry.api import retry_call
+from pprint import pprint
 
 
 class BaseSearch(ABC):
@@ -129,7 +130,11 @@ class FronteraSearch(BaseSearch):
         return self._hits
 
     def search(
-        self, query: str, rows_per_batch: int = 1000, max_records: int = 999_999_999
+        self,
+        query: str,
+        rows_per_batch: int = 1000,
+        max_records: int = 999_999_999,
+        **kwargs,
     ) -> Generator[dict, Any, Any]:
 
         rows_per_batch = min(rows_per_batch, max_records)
@@ -153,3 +158,36 @@ class FronteraSearch(BaseSearch):
             docs = data.get("docs")
             for doc in docs:
                 yield doc
+
+    def get_fields(self):
+        rows_per_batch = 1000
+        max_records = 999_999_999
+        query = "*:*"
+        all_keys = {}
+        # Initialize the loop
+        start = 0
+        self._hits = max_records
+        while start < self._hits and start < max_records:
+            # Make sure final batch does not exceed max wanted.
+            if start + rows_per_batch > max_records:
+                rows_per_batch = max_records - start
+
+            query_url = (
+                f"{self.source_url}?"
+                f"query={query}&start={start}&rows={rows_per_batch}&wt=json"
+            )
+            print(query_url)
+            results = retry_call(requests.get, fargs=[query_url])
+            print(results.status_code)
+            data = results.json().get("response")
+            self._hits = data.get("numFound")
+            start += rows_per_batch
+
+            docs = data.get("docs")
+            for doc in docs:
+                for key in doc.keys():
+                    if key in all_keys.keys():
+                        all_keys[key] = all_keys[key] + 1
+                    else:
+                        all_keys[key] = 1
+        pprint(dict(sorted(all_keys.items())), width=132)
