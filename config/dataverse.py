@@ -17,8 +17,8 @@ def map_record(record: dict) -> dict:
         "type": "type",
         "url": "url",
         "name": "titles",
-        "publisher": "publisher",
-        "description": "description",
+        "publisher": "publishers",
+        "description": "descriptions",
         "subjects": "subjects",
         "keywords": "keywords",
     }
@@ -28,9 +28,10 @@ def map_record(record: dict) -> dict:
         if fld in record:
             output_record[fields_to_keep[fld]] = record[fld]
 
-    # Make titles a list, consistent with other source
-    if "titles" in output_record:
-        output_record["titles"] = [output_record["titles"]]
+    # Make each of these fields a list, consistent with other sources.
+    for field in ["descriptions", "publishers", "titles"]:
+        if field in output_record:
+            output_record[field] = [output_record[field]]
 
     # Add new field for source
     output_record["source"] = "Dataverse"
