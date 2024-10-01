@@ -75,6 +75,38 @@ class DataverseSearch(BaseSearch):
             for doc in data.get("items"):
                 yield doc
 
+    def get_fields(self):
+        rows_per_batch = 1000
+        max_records = 999_999_999
+        query = "*&publicationStatus:Published"
+        all_keys = {}
+        # Initialize the loop
+        start = 0
+        self._hits = max_records
+        while start < self._hits and start < max_records:
+            # Make sure final batch does not exceed max wanted.
+            if start + rows_per_batch > max_records:
+                rows_per_batch = max_records - start
+
+            query_url = (
+                f"{self.source_url}?"
+                f"q={query}&start={start}&per_page={rows_per_batch}"
+            )
+            results = retry_call(requests.get, fargs=[query_url])
+            print(results.status_code)
+            data = results.json().get("data")
+            self._hits = data.get("total_count")
+            start += rows_per_batch
+
+            docs = data.get("items")
+            for doc in docs:
+                for key in doc.keys():
+                    if key in all_keys.keys():
+                        all_keys[key] = all_keys[key] + 1
+                    else:
+                        all_keys[key] = 1
+        pprint(dict(sorted(all_keys.items())), width=132)
+
 
 class SolrSearch(BaseSearch):
     def __init__(self, source_url: str):
@@ -176,7 +208,6 @@ class FronteraSearch(BaseSearch):
                 f"{self.source_url}?"
                 f"query={query}&start={start}&rows={rows_per_batch}&wt=json"
             )
-            print(query_url)
             results = retry_call(requests.get, fargs=[query_url])
             print(results.status_code)
             data = results.json().get("response")
