@@ -10,7 +10,7 @@ def map_record(record: dict) -> dict:
         "id": "id",
         "ss_title": "titles",
         "content": "content",
-        "ss_type": "type",
+        "ss_type": "types",
         "ss_field_recording_artist_name_string": "recording_artist",
         "ss_field_recording_composer_string": "composer",
     }
@@ -20,9 +20,10 @@ def map_record(record: dict) -> dict:
         if fld in record:
             output_record[fields_to_keep[fld]] = record[fld]
 
-    # Make titles a list.
-    if "titles" in output_record:
-        output_record["titles"] = [output_record["titles"]]
+    # Make each of these fields a list, consistent with other sources.
+    for field in ["titles", "types"]:
+        if field in output_record:
+            output_record[field] = [output_record[field]]
 
     # Add names for (some) consistency with other sources,
     # but keep separate fields as well for distinction.

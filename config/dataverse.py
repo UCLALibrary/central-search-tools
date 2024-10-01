@@ -14,7 +14,7 @@ def map_record(record: dict) -> dict:
     # rename fields for consistency.
     fields_to_keep = {
         "id": "id",
-        "type": "type",
+        "type": "types",
         "url": "url",
         "name": "titles",
         "publisher": "publishers",
@@ -29,7 +29,7 @@ def map_record(record: dict) -> dict:
             output_record[fields_to_keep[fld]] = record[fld]
 
     # Make each of these fields a list, consistent with other sources.
-    for field in ["descriptions", "publishers", "titles"]:
+    for field in ["descriptions", "publishers", "titles", "types"]:
         if field in output_record:
             output_record[field] = [output_record[field]]
 
