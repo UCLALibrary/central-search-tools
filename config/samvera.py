@@ -52,7 +52,9 @@ def map_record(record: dict) -> dict:
     ]
     # Each of the values in tmp_names is a list already, so add just the values
     # from each field in tmp_names.
-    output_record["names"] = [name for field in tmp_names if field for name in field]
+    names = [name for field in tmp_names if field for name in field]
+    if names:
+        output_record["names"] = names
 
     # add fields for url and source
     output_record["url"] = (
