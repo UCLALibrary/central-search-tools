@@ -11,8 +11,8 @@ def map_record(record: dict) -> dict:
         "ss_title": "titles",
         "content": "content",
         "ss_type": "types",
-        "ss_field_recording_artist_name_string": "recording_artist",
-        "ss_field_recording_composer_string": "composer",
+        "ss_field_recording_artist_name_string": "recording_artists",
+        "ss_field_recording_composer_string": "composers",
     }
 
     output_record = {}
@@ -21,7 +21,7 @@ def map_record(record: dict) -> dict:
             output_record[fields_to_keep[fld]] = record[fld]
 
     # Make each of these fields a list, consistent with other sources.
-    for field in ["titles", "types"]:
+    for field in ["composers", "recording_artists", "titles", "types"]:
         if field in output_record:
             output_record[field] = [output_record[field]]
 
@@ -30,8 +30,8 @@ def map_record(record: dict) -> dict:
     # None of these names is guaranteed to exist, so create names
     # only when at least one does.
     tmp_names = [
-        output_record.get("recording_artist"),
-        output_record.get("composer"),
+        output_record.get("recording_artists"),
+        output_record.get("composers"),
     ]
     output_record["names"] = [name for name in tmp_names if name is not None]
 
