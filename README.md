@@ -16,7 +16,7 @@ The full local environment can be used for experimenting, with local copies of
 
 To run the full system locally:
 
-`docker compose -f docker-compose_LOCAL.yml up -d`
+`docker-compose -f docker-compose_FULL.yml up -d`
 
 This provides 2 Solr indexes:
 * http://localhost:8983/solr/#/sinai (742 documents)
@@ -28,17 +28,24 @@ Elasticsearch
 Kibana, for easier exploration of Elasticsearch indexes
 * http://localhost:5601/app/dev_tools#/console
 
+For an alternative, with local Elasticsearch and Kibana but no local Solr:
+
+`docker-compose -f docker-compose_ES_ONLY.yml up -d`
+
 ### Command-line tools
 
-The command-line tool for working with data is `centralsearch.py`.  Currently, it has only
-one function, copying data from Solr to Elasticsearch; more may be added later.
+The command-line tool for working with data is `centralsearch.py`.  Its main purpose is to copy data
+from Solr to Elasticsearch, but it has other commands - see below for more.
 
 The easiest way to work with it is to open a dockerized python environment,
 then run commands within that environment.
 
+Command-line examples below all assume you are running commands within Docker.
+If running in a virtual environment instead, URLs may need to be changed to use `localhost`.
+
 #### Open python console using the full local environment
 
-`docker compose -f docker-compose_LOCAL.yml run python bash`
+`docker-compose -f docker-compose_FULL.yml run python bash` or `docker-compose -f docker-compose_ES_ONLY.yml run python bash`
 
 #### List commands
 
@@ -93,11 +100,11 @@ python centralsearch.py copy \
 
 Ignore security warnings in the local environment.
 
-#### List fields in Solr index
-Lists all fields in all records in a Solr index, along with number of occurrences of each field.
+#### List fields in an index
+Lists all fields in all records in an index, along with number of occurrences of each field.
 Generally takes 5-15 minutes, depending on number of records.
 ```
-python centralsearch.py get_solr_fields --source-url URL
+python centralsearch.py get_fields --source-type [solr|dataverse|frontera] --source-url URL
 ```
 
 #### Review / explore data
@@ -114,7 +121,7 @@ Elasticsearch and Kibana provide the same data, but Kibana is friendlier to use 
 
 #### Shut down the local environment
 
-`docker compose -f docker-compose_LOCAL.yml down`
+`docker-compose -f docker-compose_FULL.yml down` or `docker-compose -f docker-compose_ES_ONLY.yml down`
 
 ## Production use
 

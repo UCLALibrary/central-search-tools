@@ -3,12 +3,9 @@ from numbers import Number
 from typing import Generator, Any
 
 import click
-import rich.progress
-from pysolr import Solr  # type: ignore
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import streaming_bulk
 from datasources import DataverseSearch, SolrSearch, FronteraSearch
-from pprint import pprint
 
 
 @click.group()
@@ -19,8 +16,8 @@ def centralsearch():
 @click.option(
     "--source-url",
     required=True,
-    help="Solr URL. Can contain username and password "
-    + "(e.g. https://[username]:[password]@solr.url/",
+    help="Data source URL. Can contain username and password "
+    + "(e.g. https://[username]:[password]@url/",
 )
 @click.option(
     "--source-type",
@@ -71,7 +68,7 @@ def copy(
         for doc in results:
             es_doc = map_record(doc)
             # Explicitly set _id as that can't be done per record via streaming_bulk.
-            es_doc["_id"] = get_id(doc)
+            es_doc["_id"] = get_id(es_doc)
             yield es_doc
 
     if source_type == "solr":
@@ -116,41 +113,38 @@ def copy(
             print(f"{completed} / {total}")
 
 
-@click.option("--source-url", required=True, help="Solr URL")
+@click.option(
+    "--source-url",
+    required=True,
+    help="Data source URL. Can contain username and password "
+    + "(e.g. https://[username]:[password]@url/",
+)
+@click.option(
+    "--source-type",
+    default="solr",
+    help="Type of data source; defaults to solr",
+    type=click.Choice(["solr", "dataverse", "frontera"], case_sensitive=False),
+)
 @click.option(
     "--def-type",
     default="lucene",
     help="Solr defType; defaults to lucene",
     type=click.Choice(["lucene", "dismax", "edismax"], case_sensitive=False),
 )
-@centralsearch.command("get_solr_fields")
-def get_solr_fields(source_url: str, def_type: str) -> None:
-    """List all fields in all records of a Solr index,
+@centralsearch.command("get_fields")
+def get_fields(source_url: str, source_type: str, def_type: str) -> None:
+    """List all fields in all records of an index,
     along with the number of times they occur."""
-    with rich.progress.Progress() as progress:
-        task = progress.add_task("Getting fields...", total=None)
-        source_solr = Solr(source_url, timeout=10, always_commit=True)
-        source_query = "*:*"
-        n_hits = float("inf")
-        max_records = float("inf")
-        start = 0
-        chunk_size = 250
-        all_keys = {}
-        while start < n_hits and start < max_records:
-            chunk = source_solr.search(
-                source_query, defType=def_type, start=start, rows=chunk_size
-            )
-            n_hits = chunk.hits
-            for doc in chunk.docs:
-                for key in doc.keys():
-                    if key in all_keys.keys():
-                        all_keys[key] = all_keys[key] + 1
-                    else:
-                        all_keys[key] = 1
-            progress.update(task, total=n_hits, completed=start + chunk_size)
-            start += chunk_size
+    if source_type == "solr":
+        searcher = SolrSearch(source_url)
+    elif source_type == "dataverse":
+        searcher = DataverseSearch(source_url)
+    elif source_type == "frontera":
+        searcher = FronteraSearch(source_url)
+    else:
+        raise (NotImplementedError(f"Unsupported {source_type=}"))
 
-        pprint(dict(sorted(all_keys.items())), width=132)
+    searcher.get_fields(def_type=def_type)
 
 
 if __name__ == "__main__":

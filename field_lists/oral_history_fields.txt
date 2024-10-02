@@ -1,0 +1,10 @@
+{'author_display': 1748,
+ 'hashed_id_ssi': 5009,
+ 'id': 5009,
+ 'interviewee_display': 1742,
+ 'language_facet': 1904,
+ 'score': 5009,
+ 'subject_topic_facet': 1866,
+ 'subtitle_display': 1084,
+ 'title_display': 5009}
+ 
