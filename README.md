@@ -125,8 +125,11 @@ Elasticsearch and Kibana provide the same data, but Kibana is friendlier to use 
 
 ## Production use
 
-Coming soon (TM).
-
 For production use, only the python environment is needed, since it will run against real Solr and Elasticsearch instances.
+See `production_data.md` for commands to harvest the various systems.
 
+#### Start a bash shell to run all commands in the python docker environment
 `docker compose run python bash`
+
+#### Shut down the local python docker environment
+`exit`
