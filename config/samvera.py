@@ -69,12 +69,12 @@ def map_record(record: dict) -> dict:
         # Skip unwanted fields.
         if key in fields_to_remove:
             continue
+        # Copy existing fields.
+        output_record[key] = value
         # Duplicate fields with new names.
-        elif key in fields_to_duplicate:
-            output_record[fields_to_duplicate[key]] = value
-        # Copy all other fields as-is.
-        else:
-            output_record[key] = value
+        if key in fields_to_duplicate.keys():
+            new_key = fields_to_duplicate[key]
+            output_record[new_key] = value
 
     # Add "names" field for (some) consistency with other sources,
     # but keep separate fields as well for distinction.
