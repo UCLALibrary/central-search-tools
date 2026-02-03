@@ -2,6 +2,9 @@
 Below are the commands to harvest production Solr data into production Elasticsearch indexes.
 Environment variables are set via files loaded in the relevant `docker-compose*.yml` files.
 
+If local system is started with the default `docker-compose.yml`, data will be loaded into indexes
+in our production Elasticsearch system, specified by `ELASTIC_URL` in `.docker-compose_elastic_secret.env`.
+
 For local data review:
 * See `README.md` for examples, or if using commands from below:
   * `docker compose -f docker-compose_ES_ONLY.yml up -d`
@@ -19,7 +22,7 @@ python centralsearch.py copy \
 --source-type dataverse \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-dataverse \
+--destination-index-name central-search-dataverse \
 --profile config.dataverse
 ```
 
@@ -30,7 +33,7 @@ python centralsearch.py copy \
 --source-type frontera \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-frontera \
+--destination-index-name central-search-frontera \
 --profile config.frontera
 ```
 
@@ -42,7 +45,7 @@ python centralsearch.py copy \
 --source-type solr \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-oralhistory \
+--destination-index-name central-search-oralhistory \
 --profile config.oralhistory
 ```
 
@@ -53,7 +56,7 @@ python centralsearch.py copy \
 --source-type solr \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-prl \
+--destination-index-name central-search-prl \
 --profile config.PRL
 ```
 
@@ -64,7 +67,7 @@ python centralsearch.py copy \
 --source-type solr \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-sheetmusic \
+--destination-index-name central-search-sheetmusic \
 --profile config.sheet_music
 ```
 
@@ -76,7 +79,7 @@ python centralsearch.py copy \
 --source-type solr \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-sinai-manuscripts \
+--destination-index-name central-search-sinai-manuscripts \
 --profile config.samvera
 ```
 
@@ -88,7 +91,7 @@ python centralsearch.py copy \
 --source-type solr \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-calursus \
+--destination-index-name central-search-calursus \
 --profile config.samvera
 ```
 
@@ -104,7 +107,7 @@ python centralsearch.py copy \
 --source-type solr \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-dl-legacy \
+--destination-index-name central-search-dl-legacy \
 --profile config.dl_legacy
 ```
 
@@ -117,6 +120,6 @@ python centralsearch.py copy \
 --source-type solr \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
---destination-index-name systems-index-sinai-palimpsests \
+--destination-index-name central-search-sinai-palimpsests \
 --profile config.sinai_palimpsests
 ```
