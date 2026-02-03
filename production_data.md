@@ -80,7 +80,7 @@ python centralsearch.py copy \
 --elastic-url "${ELASTIC_URL}" \
 --elastic-api-key "${ELASTIC_API_KEY}" \
 --destination-index-name central-search-sinai-manuscripts \
---profile config.samvera
+--profile config.sinai
 ```
 
 ### Ursus
