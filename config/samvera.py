@@ -2,16 +2,50 @@ SOURCE_QUERY = "ark_ssi:*"
 
 
 def get_id(record: dict) -> str:
-    return f"https://digital.library.ucla.edu/catalog/{record['ark']}"
+    return f"https://digital.library.ucla.edu/catalog/{record['ark_ssi']}"
 
 
 def map_record(record: dict) -> dict:
-    # Only take a selection of fields for now;
-    # rename fields for consistency.
-    # There are MANY more fields we could consider using.
-    fields_to_keep = {
-        "id": "id",
-        "ark_ssi": "ark",
+    # These fields should not be included in the output record.
+    fields_to_remove = [
+        "_version_",
+        "accessControl_ssim",
+        "accessTo_ssim",
+        "admin_set_sim",
+        "admin_set_tesim",
+        "bytes_lts",
+        "collection_type_gid_ssim",
+        "date_dtsim",
+        "date_modified_dtsi",
+        "date_uploaded_dtsi",
+        "depositor_ssim",
+        "depositor_tesim",
+        "discover_access_group_ssim",
+        "edit_access_group_ssim",
+        "edit_access_person_ssim",
+        "file_set_ids",
+        "hasRelatedImage_ssim",
+        "hasRelatedMediaFragment_ssim",
+        "hashed_id_ssi",
+        "member_ids_ssim",
+        "nesting_collection__ancestors_ssim",
+        "nesting_collection__deepest_nested_depth_isi",
+        "nesting_collection__parent_ids_ssim",
+        "nesting_collection__pathnames_ssim",
+        "ordered_targets_ssim",
+        "proxyFor_ssim",
+        "proxy_in_ssi",
+        "read_access_group_ssim",
+        "recalculate_size_bsi",
+        "score",
+        "suppressed_bsi",
+        "system_create_dtsi",
+        "system_modified_dtsi",
+        "timestamp",
+        "ursus_id_ssie",
+    ]
+    # These fields should be duplicated with new names in the output record.
+    fields_to_duplicate = {
         "title_tesim": "titles",
         "artist_tesim": "artists",
         "author_tesim": "authors",
@@ -28,15 +62,21 @@ def map_record(record: dict) -> dict:
         "subject_tesim": "subjects",
         "subject_topic_tesim": "subject_topics",
         "genre_tesim": "types",
-        "external_link": "url",
     }
 
     output_record = {}
-    for fld in fields_to_keep.keys():
-        if fld in record and record[fld] != [" "]:
-            output_record[fields_to_keep[fld]] = record[fld]
+    for key, value in record.items():
+        # Skip unwanted fields.
+        if key in fields_to_remove:
+            continue
+        # Copy existing fields.
+        output_record[key] = value
+        # Duplicate fields with new names.
+        if key in fields_to_duplicate.keys():
+            new_key = fields_to_duplicate[key]
+            output_record[new_key] = value
 
-    # Add names for (some) consistency with other sources,
+    # Add "names" field for (some) consistency with other sources,
     # but keep separate fields as well for distinction.
     # None of these names is guaranteed to exist, so create names
     # only when at least one does.
@@ -58,7 +98,7 @@ def map_record(record: dict) -> dict:
 
     # add fields for url and source
     output_record["url"] = (
-        f"https://digital.library.ucla.edu/catalog/{output_record['ark']}"
+        f"https://digital.library.ucla.edu/catalog/{output_record['ark_ssi']}"
     )
     output_record["source"] = "Ursus"
     return output_record
