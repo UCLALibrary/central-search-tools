@@ -1,14 +1,29 @@
-# Use the official Python 3.11 image as the base image
-FROM python:3.11
+FROM python:3.13-slim-bookworm
 
-# Set the working directory in the container
-WORKDIR /app
+# Set correct timezone
+RUN ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
 
-# Copy the requirements.txt file to the working directory
-COPY requirements.txt .
+# Create generic ftva_data user
+RUN useradd -c "generic app user" -d /home/appuser -s /bin/bash -m appuser
 
-# Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Switch to application directory, creating it if needed
+WORKDIR /home/appuser/project
 
-# Copy the rest of the application code to the working directory
-COPY . .
+# Make sure appuser owns app directory, if WORKDIR created it:
+# https://github.com/docker/docs/issues/13574
+RUN chown -R appuser:appuser /home/appuser
+
+# Change context to appuser user for remaining steps
+USER appuser
+
+# Copy application files to image, and ensure appuser user owns everything
+COPY --chown=appuser:appuser . .
+
+# Include local python bin into appuser user's path, mostly for pip
+ENV PATH=/home/appuser/.local/bin:${PATH}
+
+# Make sure pip is up to date, and don't complain if it isn't yet
+RUN pip install --upgrade pip --disable-pip-version-check
+
+# Install requirements for this application
+RUN pip install --no-cache-dir -r requirements.txt --user --no-warn-script-location
