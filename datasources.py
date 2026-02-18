@@ -21,7 +21,7 @@ class BaseSearch(ABC):
     ) -> Generator[dict, Any, Any]: ...
 
     @abstractmethod
-    def get_fields(self, **kwargs) -> None: ...
+    def get_fields(self, *args, **kwargs) -> None: ...
 
 
 class DataverseSearch(BaseSearch):
@@ -78,7 +78,7 @@ class DataverseSearch(BaseSearch):
             for doc in data.get("items"):
                 yield doc
 
-    def get_fields(self, **kwargs):
+    def get_fields(self, *args, **kwargs):
         rows_per_batch = 1000
         max_records = 999_999_999
         query = "*&publicationStatus:Published"
@@ -127,6 +127,7 @@ class SolrSearch(BaseSearch):
         rows_per_batch: int = 1000,
         max_records: int = 999_999_999,
         def_type: str = "lucene",
+        **kwargs,
     ) -> Generator[dict, Any, Any]:
         solr_client = Solr(self.source_url, timeout=10)
 
@@ -151,7 +152,7 @@ class SolrSearch(BaseSearch):
             for doc in results.docs:
                 yield doc
 
-    def get_fields(self, def_type: str) -> None:
+    def get_fields(self, def_type: str, *args, **kwargs) -> None:
         """List all fields in all records of a Solr index,
         along with the number of times they occur."""
         source_solr = Solr(self.source_url, timeout=10, always_commit=True)
@@ -217,7 +218,7 @@ class FronteraSearch(BaseSearch):
             for doc in docs:
                 yield doc
 
-    def get_fields(self, **kwargs):
+    def get_fields(self, *args, **kwargs):
         rows_per_batch = 1000
         max_records = 999_999_999
         query = "*:*"

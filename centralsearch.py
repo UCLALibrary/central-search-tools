@@ -1,5 +1,4 @@
 from importlib import import_module
-from numbers import Number
 from typing import Generator, Any
 
 import click
@@ -50,11 +49,11 @@ def copy(
     source_url: str,
     source_type: str,
     destination_index_name: str,
-    max_records: Number,
+    max_records: int,
     elastic_url: str,
     elastic_api_key: str | None,
     profile: str | None,
-    def_type: str | None,
+    def_type: str,
 ):
     """Copy records from a source index to the central Elasticsearch index."""
 
@@ -96,8 +95,22 @@ def copy(
 
     # Load documents into Elasticsearch in bulk, via a generator:
     # https://elasticsearch-py.readthedocs.io/en/7.x/helpers.html
+    # Example result (success):
+    # {
+    #     "index": {
+    #         "_index": "central-search-calursus",
+    #         "_type": "_doc",
+    #         "_id": "https://digital.library.ucla.edu/catalog/ark:/21198/z1n88f1d/hz014895",
+    #         "_version": 4,
+    #         "result": "updated",
+    #         "_shards": {"total": 2, "successful": 2, "failed": 0},
+    #         "_seq_no": 2504626,
+    #         "_primary_term": 1,
+    #         "status": 200,
+    #     }
+    # }
     completed = 0
-    for ok, action in streaming_bulk(
+    for ok, result in streaming_bulk(
         client=es_client,
         index=destination_index_name,
         actions=_generate_docs(results),
@@ -106,11 +119,24 @@ def copy(
         initial_backoff=2,
         max_backoff=60,
         request_timeout=30,
+        raise_on_error=False,
+        raise_on_exception=False,
     ):
-        completed += ok
-        total = min(searcher.hits, max_records)
-        if (completed % rows_per_batch == 0) or (completed == total):
-            print(f"{completed} / {total}")
+        # ok is a boolean.
+        if ok:
+            # True = 1, so increment completed.
+            completed += ok
+            total = min(searcher.hits, max_records)
+            if (completed % rows_per_batch == 0) or (completed == total):
+                print(f"{completed} / {total}")
+        else:
+            # Something went wrong; since this is unpredictable, print the whole
+            # result message, which includes index, record id, and error info including
+            # the specific field and data causing the problem.
+            print(f"ERROR: {result}")
+
+    # All done, print total counts.
+    print(f"Successfully indexed {completed} out of {searcher.hits} source records.")
 
 
 @click.option(
