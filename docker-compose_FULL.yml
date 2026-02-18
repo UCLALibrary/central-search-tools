@@ -2,7 +2,7 @@ services:
   python:
     build: .
     volumes:
-      - .:/app
+      - .:/home/appuser/project
     extra_hosts:
       # For access to remote resources via ssh tunnel on host
       - "host.docker.internal:host-gateway"

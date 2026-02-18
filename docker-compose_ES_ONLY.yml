@@ -2,7 +2,7 @@ services:
   python:
     build: .
     volumes:
-      - .:/app
+      - .:/home/appuser/project
     env_file:
       # Remote data source credentials
       - .docker-compose_source_secret.env

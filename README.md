@@ -9,7 +9,7 @@ Build (first time) / rebuild (as needed):
 ## Local experimentation
 
 The full local environment can be used for experimenting, with local copies of
-* Python (version 3.11), with required packages
+* Python (version 3.13), with required packages
 * Solr (version 7.4), with some UCLA-specific indexes
 * Elasticsearch (version 7.17.19)
 * Kibana (version 7.17.19)
